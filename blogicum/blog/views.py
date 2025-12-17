@@ -1,14 +1,10 @@
-from typing import Any
-from unicodedata import category
-
 from django.db.models import Count
 from django.http import Http404
-from django.shortcuts import render, get_object_or_404, redirect
-from django.template.context_processors import request
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.views.generic import (ListView, CreateView, UpdateView,
+                                  DetailView, DeleteView)
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from .forms import UserUpdateForm, PostForm, CommentForm
 from .models import Category, Post, User, Comment
 from django.utils import timezone
@@ -34,12 +30,16 @@ class ProfileView(ListView):
 
         return queryset.annotate(
             comment_count=Count('comments')
-        ).order_by('-pub_date', '-id')
+        ).order_by('-pub_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile'] = get_object_or_404(User, username=self.kwargs.get('username'))
+        context['profile'] = get_object_or_404(
+            User,
+            username=self.kwargs.get('username')
+        )
         return context
+
 
 class CreatePostView(LoginRequiredMixin, CreateView):
     model = Post
@@ -55,6 +55,7 @@ class CreatePostView(LoginRequiredMixin, CreateView):
         return reverse_lazy('blog:profile', kwargs={
             'username': self.request.user.username
         })
+
 
 class MainPostView(ListView):
     model = Post
@@ -79,15 +80,17 @@ class CategoryPostView(ListView):
     context_object_name = 'page_obj'
     paginate_by = 10
 
-
     def get_queryset(self):
         category_slug = self.kwargs.get('category_slug')
 
-        self.category = get_object_or_404(Category, slug=category_slug, is_published=True)
+        self.category = get_object_or_404(
+            Category,
+            slug=category_slug,
+            is_published=True)
 
         return Post.objects.filter(
             category=self.category,
-            is_published = True,
+            is_published=True,
             pub_date__lte=timezone.now()
         ).select_related(
             'author', 'category'
@@ -104,11 +107,15 @@ class CategoryPostView(ListView):
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     template_name = 'blog/user.html'
-    success_url = reverse_lazy('blog:profile')
     form_class = UserUpdateForm
 
     def get_object(self):
         return self.request.user
+
+    def get_success_url(self):
+        return reverse('blog:profile', kwargs={
+            'username': self.request.user.username
+        })
 
 
 class PostDetailView(DetailView):
@@ -202,7 +209,9 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'id': self.object.post.id})
+        return reverse_lazy(
+            'blog:post_detail',
+            kwargs={'id': self.object.post.id})
 
 
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
@@ -221,7 +230,10 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'id': self.object.post.id})
+        return reverse_lazy(
+            'blog:post_detail',
+            kwargs={'id': self.object.post.id})
+
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
