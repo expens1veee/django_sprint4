@@ -12,9 +12,10 @@ class UserUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        exclude = ('author',)
+        exclude = ('author', 'created_at')
         widgets = {
-            'pub_date': forms.DateInput(attrs={'type': 'datetime-local'})
+            'pub_date': forms.DateInput(attrs={'type': 'datetime-local'}),
+            'is_published': forms.CheckboxInput(),
         }
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Location, Post
+from .models import Category, Location, Post, Comment
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -46,6 +46,19 @@ class PostAdmin(admin.ModelAdmin):
     ordering = ('-pub_date',)
 
 
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Location, LocationAdmin)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'text',
+        'author',
+        'post',
+        'created_at',
+    )
+    list_filter = ('created_at', 'author', 'post')
+    search_fields = ('text',)
+    date_hierarchy = 'created_at'
+
+
 admin.site.register(Post, PostAdmin)
+admin.site.register(Location, LocationAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Comment, CommentAdmin)
